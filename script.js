@@ -154,13 +154,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function selectCell(cell) {
         if (cell.classList.contains('found')) return;
 
-        // Se não há células selecionadas ou a célula é adjacente à última selecionada
+        // Se não há células selecionadas OU a célula é adjacente à última selecionada
         if (selectedCells.length === 0 || isAdjacent(selectedCells[selectedCells.length - 1], cell)) {
+            
+            // Verifica se a célula já está selecionada (para desmarcar)
+            const alreadySelected = selectedCells.includes(cell);
+            if (alreadySelected) {
+                const index = selectedCells.indexOf(cell);
+                if (index === selectedCells.length - 1) { // Só desmarca se for a última
+                    cell.classList.remove('selected');
+                    selectedCells.pop();
+                }
+                return;
+            }
+
             cell.classList.add('selected');
             selectedCells.push(cell);
             checkWord();
+            
         } else {
-            // Se clicar em uma célula não adjacente, limpa a seleção
+            // Se clicar em uma célula não adjacente, limpa toda a seleção
             clearSelection();
             cell.classList.add('selected');
             selectedCells.push(cell);
@@ -176,40 +189,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.abs(row1 - row2) <= 1 && Math.abs(col1 - col2) <= 1;
     }
 
-    function checkWord() {
-        if (selectedCells.length < 2) return;
-
+    function isPartialWord() {
+        if (selectedCells.length < 2) return false;
+        
         const selectedWord = selectedCells.map(cell => cell.textContent).join('');
         const reversedWord = selectedCells.map(cell => cell.textContent).reverse().join('');
 
-        // Verifica se a palavra ou seu inverso está na lista
+        // Verifica se é início de alguma palavra válida
+        return words.some(word => 
+            word.startsWith(selectedWord) || 
+            word.startsWith(reversedWord)
+        );
+    }
+
+    function checkWord() {
+        const selectedWord = selectedCells.map(cell => cell.textContent).join('');
+        const reversedWord = selectedCells.map(cell => cell.textContent).reverse().join('');
+
         const foundWord = words.find(word => 
             word === selectedWord || word === reversedWord
         );
 
         if (foundWord && !foundWords.includes(foundWord)) {
-            // Marca todas as células como encontradas
+            // Palavra completa encontrada
             selectedCells.forEach(cell => {
                 cell.classList.remove('selected');
                 cell.classList.add('found');
             });
-
-            // Adiciona à lista de palavras encontradas
             foundWords.push(foundWord);
             updateWordList(foundWord);
-
-            // Mensagem de sucesso
             showMessage(`Parabéns! Encontrou "${foundWord}"!`, 'success');
+            selectedCells = [];
             
-            // Verifica se todas as palavras foram encontradas
-            if (foundWords.length === words.length) {
-                showMessage('Você completou o caça-palavras! 🎉', 'victory');
-            }
-        } else if (selectedCells.length > 2) {
-            // Se não formar uma palavra válida, limpa após 1 segundo
+        } else if (!isPartialWord()) {
+            // Não é nem palavra completa nem início válido - limpa após 1 segundo
             setTimeout(() => {
                 if (selectedCells.some(cell => !cell.classList.contains('found'))) {
                     clearSelection();
+                    showMessage('Continue tentando!', 'error');
                 }
             }, 1000);
         }
