@@ -1,128 +1,55 @@
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #e8f5e9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f8ff;
     padding: 20px;
 }
 
-.game-container {
-    background-color: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    max-width: 1000px;
-    width: 100%;
-}
-
 h1 {
-    color: #2e7d32;
-    text-align: center;
-    margin-bottom: 20px;
+    color: #2e8b57;
 }
 
-.grid {
-    display: inline-grid;
-    grid-template-columns: repeat(15, 35px);
-    gap: 2px;
-    margin: 0 auto;
-    overflow-x: auto;
+#wordGrid {
+    display: grid;
+    grid-template-columns: repeat(15, 30px);
+    gap: 3px;
+    justify-content: center;
+    margin: 20px auto;
 }
 
 .cell {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #c8e6c9;
-    font-size: 16px;
-    font-weight: bold;
+    border: 1px solid #ccc;
+    padding: 5px;
     cursor: pointer;
     user-select: none;
-    transition: all 0.2s;
+    font-weight: bold;
 }
 
 .cell.selected {
-    background-color: #fff9c4;
+    background-color: #87cefa;
+    color: white;
 }
 
 .cell.found {
-    background-color: #a5d6a7;
+    background-color: #90ee90;
+    color: white;
 }
 
-.cell.hint {
-    animation: pulse 1s infinite;
+.cell:hover {
+    background-color: #add8e6;
 }
 
-@keyframes pulse {
-    0% { background-color: #ffeb3b; }
-    50% { background-color: #fff9c4; }
-    100% { background-color: #ffeb3b; }
+ul {
+    list-style-type: none;
+    padding: 0;
 }
 
-.controls {
-    margin-top: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.words-to-find {
-    columns: 3;
-    column-gap: 30px;
+#studentArea {
     margin-bottom: 20px;
-    width: 100%;
-}
-
-.word-item {
-    margin-bottom: 8px;
-    break-inside: avoid;
-}
-
-.word-item.found {
-    text-decoration: line-through;
-    color: #2e7d32;
-    font-weight: bold;
-}
-
-.message {
-    margin: 15px 0;
-    font-weight: bold;
-    font-size: 18px;
-    color: #d32f2f;
-    min-height: 25px;
-    text-align: center;
 }
 
 button {
-    padding: 10px 20px;
-    background-color: #2e7d32;
-    color: white;
-    border: none;
-    border-radius: 5px;
+    padding: 5px 10px;
+    margin: 5px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #1b5e20;
-}
-
-@media (max-width: 768px) {
-    .grid {
-        grid-template-columns: repeat(15, 25px);
-    }
-    .cell {
-        width: 25px;
-        height: 25px;
-        font-size: 14px;
-    }
-    .words-to-find {
-        columns: 2;
-    }
 }

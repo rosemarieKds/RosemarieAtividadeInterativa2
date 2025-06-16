@@ -3,19 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caça-Palavras Gigante Rural</title>
+    <title>Caça-Palavras: Rural e Escola</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <h1>Caça-Palavras da Fazenda (15x15)</h1>
-        <div id="grid" class="grid"></div>
-        <div class="controls">
-            <div class="words-to-find" id="word-list"></div>
-            <div id="message" class="message"></div>
-            <button id="hint-btn">Dica (Pressione H)</button>
-        </div>
+    <h1>Caça-Palavras: Rural e Escola 🌾📚</h1>
+
+    <div id="studentArea">
+        <label>Nome do aluno:</label>
+        <input type="text" id="studentName">
+        <button onclick="addStudent()">Entrar no Jogo</button>
     </div>
+
+    <div id="gameArea" style="display: none;">
+        <h2>Jogador Atual: <span id="currentPlayer"></span></h2>
+
+        <div id="wordGrid"></div>
+
+        <div>
+            <button onclick="confirmSelection()">✅ Confirmar Palavra</button>
+            <button onclick="clearSelection()">❌ Cancelar Seleção</button>
+        </div>
+
+        <h2>Palavras para Encontrar:</h2>
+        <ul id="wordList"></ul>
+
+        <h2>Palavras Encontradas:</h2>
+        <ul id="foundWordsList"></ul>
+
+        <h2>Ranking:</h2>
+        <ul id="ranking"></ul>
+
+        <button onclick="nextPlayer()">➡️ Próximo Jogador</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

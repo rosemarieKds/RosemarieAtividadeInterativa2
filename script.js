@@ -1,283 +1,164 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const grid = document.getElementById('grid');
-    const wordList = document.getElementById('word-list');
-    const message = document.getElementById('message');
-    const hintBtn = document.getElementById('hint-btn');
+const gridSize = 15;
+let grid = [];
+const words = ["ESCOLA", "TRATOR", "PLANTACAO", "ALUNO", "LIVRO", "COLHEITA", "PROFESSOR", "CAMPO", "SOJA", "MILHO", "GADO", "PASTO", "HORTA", "EDUCACAO", "CADERNO"];
+let foundWords = {};
+let students = [];
+let currentStudentIndex = 0;
+let selectedCells = [];
 
-    // Configuração do jogo (15x15)
-    const size = 15;
-    const words = [
-        'TRATOR', 'VACA', 'PLANTIO', 'SOLO', 'AGUA', 'MILHO', 
-        'FARINHA', 'CEVADA', 'COLHEITA', 'ENXADA', 'PASTO', 
-        'SILO', 'LACTOSE', 'ORDENHA', 'FERTIL'
-    ];
+function createGrid() {
+    grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
+    words.forEach(word => placeWord(word));
+    fillEmptySpaces();
+    renderGrid();
+    renderWordList();
+}
 
-    // Direções: [row, col] (8 direções possíveis)
-    const directions = [
-        [0, 1],   // Horizontal →
-        [1, 0],    // Vertical ↓
-        [1, 1],    // Diagonal ↘
-        [1, -1],   // Diagonal ↙
-        [-1, 1],   // Diagonal ↗
-        [-1, -1],  // Diagonal ↖
-        [0, -1],   // Horizontal ←
-        [-1, 0]    // Vertical ↑
-    ];
+function placeWord(word) {
+    let placed = false;
+    while (!placed) {
+        const dir = Math.random() < 0.5 ? "H" : "V";
+        const row = Math.floor(Math.random() * gridSize);
+        const col = Math.floor(Math.random() * gridSize);
 
-    let gridData = Array(size).fill().map(() => Array(size).fill(''));
-    let wordPositions = {};
-    let selectedCells = [];
-    let foundWords = [];
-    let hintTimeout = null;
-
-    // Inicializa o jogo
-    initGame();
-
-    function initGame() {
-        createEmptyGrid();
-        placeWords();
-        fillEmptySpaces();
-        createGrid();
-        createWordList();
-        setupEventListeners();
-    }
-
-    function createEmptyGrid() {
-        gridData = Array(size).fill().map(() => Array(size).fill(''));
-    }
-
-    function placeWords() {
-        words.forEach(word => {
-            let placed = false;
-            let attempts = 0;
-            const maxAttempts = 100;
-
-            while (!placed && attempts < maxAttempts) {
-                attempts++;
-                const direction = directions[Math.floor(Math.random() * directions.length)];
-                const row = Math.floor(Math.random() * size);
-                const col = Math.floor(Math.random() * size);
-
-                if (canPlaceWord(word, row, col, direction)) {
-                    placeWord(word, row, col, direction);
-                    placed = true;
+        if (dir === "H" && col + word.length <= gridSize) {
+            if (grid[row].slice(col, col + word.length).every(c => c === "")) {
+                for (let i = 0; i < word.length; i++) {
+                    grid[row][col + i] = word[i];
                 }
+                placed = true;
             }
-        });
-    }
-
-    function canPlaceWord(word, row, col, direction) {
-        const [dr, dc] = direction;
-        const endRow = row + dr * (word.length - 1);
-        const endCol = col + dc * (word.length - 1);
-
-        if (endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) {
-            return false;
-        }
-
-        for (let i = 0; i < word.length; i++) {
-            const currentRow = row + dr * i;
-            const currentCol = col + dc * i;
-            const currentCell = gridData[currentRow][currentCol];
-
-            if (currentCell !== '' && currentCell !== word[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    function placeWord(word, row, col, direction) {
-        const [dr, dc] = direction;
-        wordPositions[word] = [];
-
-        for (let i = 0; i < word.length; i++) {
-            const currentRow = row + dr * i;
-            const currentCol = col + dc * i;
-            gridData[currentRow][currentCol] = word[i];
-            wordPositions[word].push(`${currentRow},${currentCol}`);
-        }
-    }
-
-    function fillEmptySpaces() {
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
-                if (gridData[i][j] === '') {
-                    gridData[i][j] = letters[Math.floor(Math.random() * letters.length)];
+        } else if (dir === "V" && row + word.length <= gridSize) {
+            if (grid.slice(row, row + word.length).every(r => r[col] === "")) {
+                for (let i = 0; i < word.length; i++) {
+                    grid[row + i][col] = word[i];
                 }
+                placed = true;
             }
         }
     }
+}
 
-    function createGrid() {
-        grid.innerHTML = '';
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.textContent = gridData[i][j];
-                cell.dataset.row = i;
-                cell.dataset.col = j;
-                cell.addEventListener('click', () => selectCell(cell));
-                grid.appendChild(cell);
+function fillEmptySpaces() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] === "") {
+                grid[row][col] = letters[Math.floor(Math.random() * letters.length)];
             }
         }
     }
+}
 
-    function createWordList() {
-        wordList.innerHTML = '';
-        words.forEach(word => {
-            const div = document.createElement('div');
-            div.className = 'word-item';
-            div.textContent = word;
-            div.dataset.word = word;
-            wordList.appendChild(div);
+function renderGrid() {
+    const gridContainer = document.getElementById("wordGrid");
+    gridContainer.innerHTML = "";
+    grid.forEach((row, rowIndex) => {
+        row.forEach((letter, colIndex) => {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.textContent = letter;
+            cell.dataset.row = rowIndex;
+            cell.dataset.col = colIndex;
+            cell.addEventListener("click", () => selectCell(cell));
+            gridContainer.appendChild(cell);
         });
+    });
+}
+
+function renderWordList() {
+    const list = document.getElementById("wordList");
+    list.innerHTML = "";
+    words.forEach(word => {
+        const li = document.createElement("li");
+        li.textContent = word;
+        list.appendChild(li);
+    });
+}
+
+function addStudent() {
+    const name = document.getElementById("studentName").value.trim();
+    if (name === "") {
+        alert("Digite o nome do aluno!");
+        return;
     }
-
-    function setupEventListeners() {
-        document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'h' && !hintTimeout) {
-                giveHint();
-            }
-        });
-
-        hintBtn.addEventListener('click', () => {
-            if (!hintTimeout) {
-                giveHint();
-            }
-        });
+    students.push(name);
+    document.getElementById("studentName").value = "";
+    if (students.length === 1) {
+        startGame();
     }
+}
 
-    function selectCell(cell) {
-        if (cell.classList.contains('found')) return;
+function startGame() {
+    document.getElementById("studentArea").style.display = "none";
+    document.getElementById("gameArea").style.display = "block";
+    document.getElementById("currentPlayer").textContent = students[currentStudentIndex];
+    createGrid();
+}
 
-        // Se não há células selecionadas OU a célula é adjacente à última selecionada
-        if (selectedCells.length === 0 || isAdjacent(selectedCells[selectedCells.length - 1], cell)) {
-            
-            // Verifica se a célula já está selecionada (para desmarcar)
-            const alreadySelected = selectedCells.includes(cell);
-            if (alreadySelected) {
-                const index = selectedCells.indexOf(cell);
-                if (index === selectedCells.length - 1) { // Só desmarca se for a última
-                    cell.classList.remove('selected');
-                    selectedCells.pop();
-                }
-                return;
-            }
-
-            cell.classList.add('selected');
-            selectedCells.push(cell);
-            checkWord();
-            
-        } else {
-            // Se clicar em uma célula não adjacente, limpa toda a seleção
-            clearSelection();
-            cell.classList.add('selected');
-            selectedCells.push(cell);
-        }
+function selectCell(cell) {
+    const isSelected = cell.classList.contains("selected");
+    if (isSelected) {
+        cell.classList.remove("selected");
+        selectedCells = selectedCells.filter(c => c !== cell);
+    } else {
+        cell.classList.add("selected");
+        selectedCells.push(cell);
     }
+}
 
-    function isAdjacent(cell1, cell2) {
-        const row1 = parseInt(cell1.dataset.row);
-        const col1 = parseInt(cell1.dataset.col);
-        const row2 = parseInt(cell2.dataset.row);
-        const col2 = parseInt(cell2.dataset.col);
+function confirmSelection() {
+    const selectedWord = selectedCells.map(cell => cell.textContent).join("");
 
-        return Math.abs(row1 - row2) <= 1 && Math.abs(col1 - col2) <= 1;
-    }
-
-    function isPartialWord() {
-        if (selectedCells.length < 2) return false;
-        
-        const selectedWord = selectedCells.map(cell => cell.textContent).join('');
-        const reversedWord = selectedCells.map(cell => cell.textContent).reverse().join('');
-
-        // Verifica se é início de alguma palavra válida
-        return words.some(word => 
-            word.startsWith(selectedWord) || 
-            word.startsWith(reversedWord)
-        );
-    }
-
-    function checkWord() {
-        const selectedWord = selectedCells.map(cell => cell.textContent).join('');
-        const reversedWord = selectedCells.map(cell => cell.textContent).reverse().join('');
-
-        const foundWord = words.find(word => 
-            word === selectedWord || word === reversedWord
-        );
-
-        if (foundWord && !foundWords.includes(foundWord)) {
-            // Palavra completa encontrada
-            selectedCells.forEach(cell => {
-                cell.classList.remove('selected');
-                cell.classList.add('found');
-            });
-            foundWords.push(foundWord);
-            updateWordList(foundWord);
-            showMessage(`Parabéns! Encontrou "${foundWord}"!`, 'success');
-            selectedCells = [];
-            
-        } else if (!isPartialWord()) {
-            // Não é nem palavra completa nem início válido - limpa após 1 segundo
-            setTimeout(() => {
-                if (selectedCells.some(cell => !cell.classList.contains('found'))) {
-                    clearSelection();
-                    showMessage('Continue tentando!', 'error');
-                }
-            }, 1000);
-        }
-    }
-
-    function clearSelection() {
+    if (words.includes(selectedWord) && !foundWords[selectedWord]) {
+        foundWords[selectedWord] = students[currentStudentIndex];
         selectedCells.forEach(cell => {
-            if (!cell.classList.contains('found')) {
-                cell.classList.remove('selected');
-            }
+            cell.classList.add("found");
+            cell.classList.remove("selected");
         });
         selectedCells = [];
+        updateFoundWords();
+        updateRanking();
+    } else {
+        alert("Palavra incorreta ou já encontrada.");
+        clearSelection();
+    }
+}
+
+function clearSelection() {
+    selectedCells.forEach(cell => cell.classList.remove("selected"));
+    selectedCells = [];
+}
+
+function updateFoundWords() {
+    const list = document.getElementById("foundWordsList");
+    list.innerHTML = "";
+    for (const word in foundWords) {
+        const li = document.createElement("li");
+        li.textContent = `${word} → ${foundWords[word]}`;
+        list.appendChild(li);
+    }
+}
+
+function updateRanking() {
+    const ranking = {};
+    for (const word in foundWords) {
+        const student = foundWords[word];
+        ranking[student] = (ranking[student] || 0) + 1;
     }
 
-    function updateWordList(word) {
-        const wordItems = document.querySelectorAll('.word-item');
-        wordItems.forEach(item => {
-            if (item.dataset.word === word) {
-                item.classList.add('found');
-            }
-        });
-    }
+    const sortedRanking = Object.entries(ranking).sort((a, b) => b[1] - a[1]);
+    const rankElement = document.getElementById("ranking");
+    rankElement.innerHTML = "";
+    sortedRanking.forEach(([student, count]) => {
+        const li = document.createElement("li");
+        li.textContent = `${student}: ${count} palavras`;
+        rankElement.appendChild(li);
+    });
+}
 
-    function showMessage(text, type) {
-        message.textContent = text;
-        message.style.color = type === 'success' ? '#2e7d32' : 
-                             type === 'victory' ? '#ff9800' : '#d32f2f';
-        
-        setTimeout(() => {
-            message.textContent = '';
-        }, 3000);
-    }
-
-    function giveHint() {
-        // Encontra uma palavra não encontrada
-        const remainingWords = words.filter(word => !foundWords.includes(word));
-        if (remainingWords.length === 0) return;
-
-        const randomWord = remainingWords[Math.floor(Math.random() * remainingWords.length)];
-        const positions = wordPositions[randomWord];
-        
-        // Pisca a primeira letra da palavra
-        const [row, col] = positions[0].split(',').map(Number);
-        const firstCell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-        
-        firstCell.classList.add('hint');
-        showMessage(`Dica: A palavra "${randomWord}" começa aqui!`, 'hint');
-        
-        hintTimeout = setTimeout(() => {
-            firstCell.classList.remove('hint');
-            hintTimeout = null;
-        }, 2000);
-    }
-});
+function nextPlayer() {
+    clearSelection();
+    currentStudentIndex = (currentStudentIndex + 1) % students.length;
+    document.getElementById("currentPlayer").textContent = students[currentStudentIndex];
+}
